@@ -9,11 +9,13 @@ output: html_document
 library(tidyverse)
 library(janitor)
 library(stringr)
+library(ggplot2)
+library(gt)
 ```
 
 ```{r, include=FALSE}
 #load the data
-x <- read.csv("ps_4_elections-poll-nc09-3.csv")
+x <- read_csv("ps_4_elections-poll-nc09-3.csv")
 ```
 
 ```{r, include=FALSE}
@@ -35,7 +37,23 @@ c <- x %>%
    filter( gender != gender_combined) %>% 
   #used nrow() to count the difference
   nrow()
-c
+
+d <- x %>% 
+  #selected both columns the question discusses
+  select(race_eth, file_race_black) %>%
+  #used same filter process as last quesiton, this time specifying that race_eth is only showing "white" observations.
+  filter(race_eth == "White", race_eth != file_race_black) %>%  
+  nrow()
+d
+
+e <- x %>%
+  #narrowed table down to just timestamp and their responses
+  select(timestamp, response) %>%
+  #arranged the timestamp variable and since I selected response, it shows me what the response was for each timestamp. Then indexed the first and fifth rows which are the first democrat and republican responses.
+  arrange(timestamp)
+
+as.numeric((e$timestamp[1] - e$timestamp[5]) * (-1)) %>%
+  round()
 ```
 
 
@@ -45,7 +63,8 @@ There were `r b$n[3]-b$n[4]` more respondents who favored the Republican candida
 
 There are two gender variables (gender and gender_combined). There are `r c` individuals for whom these variables have different values.
 
-There are X respondents listed as “White” under race_eth who are not listed as “White” under file_race_black.
+There are `r d` respondents listed as “White” under race_eth who are not listed as “White” under file_race_black.
 
-The first response of Rep came X minutes (rounded to the nearest minute) before the first response of Dem.
+The first response of Rep came `r as.numeric((e$timestamp[1] - e$timestamp[5]) * (-1)) %>%
+  round()` minutes (rounded to the nearest minute) before the first response of Dem.
 
