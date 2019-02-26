@@ -6,25 +6,46 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(stringr)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r, include=FALSE}
+#load the data
+x <- read.csv("ps_4_elections-poll-nc09-3.csv")
 ```
 
-## Including Plots
+```{r, include=FALSE}
+ #filtered the table to show who did or didn't vote for Democrats and then counted the ones that did with count()
+a <- x %>%
+  filter(response == "Dem") %>%
+  count(TRUE)
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+b <- x %>%
+  #selected response to specify what I was looking at
+  select(response) %>% 
+  #grouped by response and counted to get numbers associated with each response
+  group_by(response) %>% 
+  summarise(n=n())
+
+c <- x %>%
+ #filtered for when gender observations didn't match gender_combined observations
+   filter( gender != gender_combined) %>% 
+  #used nrow() to count the difference
+  nrow()
+c
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+There were `r a$n` respondents who supported the Democratic candidate.
+
+There were `r b$n[3]-b$n[4]` more respondents who favored the Republican candidate than who were Undecided.
+
+There are two gender variables (gender and gender_combined). There are `r c` individuals for whom these variables have different values.
+
+There are X respondents listed as “White” under race_eth who are not listed as “White” under file_race_black.
+
+The first response of Rep came X minutes (rounded to the nearest minute) before the first response of Dem.
+
