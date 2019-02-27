@@ -74,20 +74,19 @@ The first response of Rep came `r as.numeric((e$timestamp[1] - e$timestamp[5]) *
 ```{r make_chart, echo=FALSE, results="asis"}
 graphNC <- x %>%
   select(response, race_eth, final_weight) %>%
+  filter(race_eth != "[DO NOT READ] Don't know/Refused") %>%
+  mutate(race_eth = fct_relevel(race_eth, "White", "Black","Hispanic", "Asian", "Other")) %>% 
   group_by(response, race_eth) %>%
   summarize(total = sum(final_weight)) %>%
-  filter(race_eth != "[DO NOT READ] Don't know/Refused") %>%
-  filter(response != "3") %>%
   spread(key = response, value= total) %>%
+  select(race_eth, Dem, Rep, Und) %>% 
   replace_na(list(Und = 0)) %>%
-  mutate(all = Dem + Rep + Und + 3) %>% 
+  ungroup() %>%
+  mutate(all = Dem + Rep + Und) %>% 
   mutate(Dem = Dem / all) %>% 
   mutate(Rep = Rep / all) %>% 
   mutate(Und = Und / all) %>%
-  select(-all) %>%
-  ungroup() %>%
-  mutate(race_eth = fct_relevel(race_eth, c("White", "Black","Hispanic", "Asian", "Other"))) %>% 
-  arrange(race_eth) %>%
+  select(race_eth, Rep, Dem, Und) %>% 
   gt() %>%
   tab_header(title = "North Carolina 9th Congressional District Polling Results") %>%
    cols_label(
@@ -100,5 +99,52 @@ graphNC <- x %>%
                 decimals = 0)
 graphNC
 ```
+
+##Question 3
+
+```{r, echo = FALSE, warning=FALSE}
+GraphNC2 <- x %>%
+  select(educ, final_weight) %>%
+  filter(educ != "[DO NOT READ] Refused") %>% 
+  mutate(educ = fct_relevel(educ, "Grade school","High school","Some college or trade school","Bachelors' degree","Graduate or Professional Degree")) %>%
+  ggplot(aes(x = educ, y = final_weight)) +
+  geom_violin() +
+  geom_jitter(width = .2, size = 1.0, alpha = .5) + 
+  coord_flip() +
+  labs(title= "More Educated Matter Less in North Carolina 9th ",
+       subtitle = "Poll gives more weight to people who are less likely to participate in polls",
+       caption = "New York Times Upshot/Siena College 2018 live polls") +
+  ylab("Weight Given to Respondent in Calculating Poll Results") +
+  xlab(NULL)
+
+GraphNC2
+```
+
+##Question 4
+``{r}
+graphNC3 <- x %>%
+  select(gender, response, final_weight) %>%
+  filter(response != "3") %>%
+  ggplot(aes(x = gender, y = response)) +
+  geom_()
+
+  
+  
+  
+graphNC3  
+```
+
+##Colleagues
+Adiya Abdilkhay
+Alexandra Dobbins
+Albert Shin
+Jenny Li
+Henry Xhu
+Neil Khurana
+Tate Green
+Charlie Flood
+Chris Onesti
+Seeam Noor
+  
 
 
