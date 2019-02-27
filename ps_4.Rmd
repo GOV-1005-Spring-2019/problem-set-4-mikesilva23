@@ -11,6 +11,7 @@ library(janitor)
 library(stringr)
 library(ggplot2)
 library(gt)
+library(tidyr)
 ```
 
 ```{r, include=FALSE}
@@ -49,14 +50,14 @@ d
 e <- x %>%
   #narrowed table down to just timestamp and their responses
   select(timestamp, response) %>%
-  #arranged the timestamp variable and since I selected response, it shows me what the response was for each timestamp. Then indexed the first and fifth rows which are the first democrat and republican responses.
+  #arranged the timestamp variable and since I selected response, it shows me what the response was for each timestamp. 
   arrange(timestamp)
-
+#Indexed the first and fifth rows which are the first democrat and republican responses ad found the difference between them. 
 as.numeric((e$timestamp[1] - e$timestamp[5]) * (-1)) %>%
   round()
 ```
 
-
+##Question 1
 There were `r a$n` respondents who supported the Democratic candidate.
 
 There were `r b$n[3]-b$n[4]` more respondents who favored the Republican candidate than who were Undecided.
@@ -67,4 +68,37 @@ There are `r d` respondents listed as “White” under race_eth who are not lis
 
 The first response of Rep came `r as.numeric((e$timestamp[1] - e$timestamp[5]) * (-1)) %>%
   round()` minutes (rounded to the nearest minute) before the first response of Dem.
+
+##Question 2
+
+```{r make_chart, echo=FALSE, results="asis"}
+graphNC <- x %>%
+  select(response, race_eth, final_weight) %>%
+  group_by(response, race_eth) %>%
+  summarize(total = sum(final_weight)) %>%
+  filter(race_eth != "[DO NOT READ] Don't know/Refused") %>%
+  filter(response != "3") %>%
+  spread(key = response, value= total) %>%
+  replace_na(list(Und = 0)) %>%
+  mutate(all = Dem + Rep + Und + 3) %>% 
+  mutate(Dem = Dem / all) %>% 
+  mutate(Rep = Rep / all) %>% 
+  mutate(Und = Und / all) %>%
+  select(-all) %>%
+  ungroup() %>%
+  mutate(race_eth = fct_relevel(race_eth, c("White", "Black","Hispanic", "Asian", "Other"))) %>% 
+  arrange(race_eth) %>%
+  gt() %>%
+  tab_header(title = "North Carolina 9th Congressional District Polling Results") %>%
+   cols_label(
+     race_eth = "Race",
+     Dem = "DEM",
+      Rep = "REP",
+      Und = "UND"
+      ) %>%
+  fmt_percent(columns = vars(Dem, Rep, Und),
+                decimals = 0)
+graphNC
+```
+
 
