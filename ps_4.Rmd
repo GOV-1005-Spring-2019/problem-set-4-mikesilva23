@@ -45,7 +45,7 @@ d <- x %>%
   #used same filter process as last quesiton, this time specifying that race_eth is only showing "white" observations.
   filter(race_eth == "White", race_eth != file_race_black) %>%  
   nrow()
-d
+
 
 e <- x %>%
   #narrowed table down to just timestamp and their responses
@@ -73,21 +73,47 @@ The first response of Rep came `r as.numeric((e$timestamp[1] - e$timestamp[5]) *
 
 ```{r make_chart, echo=FALSE, results="asis"}
 graphNC <- x %>%
+  #Selected the variables needed based on the graph. 
   select(response, race_eth, final_weight) %>%
+  
+  #Removed the refusals to participate
   filter(race_eth != "[DO NOT READ] Don't know/Refused") %>%
-  mutate(race_eth = fct_relevel(race_eth, "White", "Black","Hispanic", "Asian", "Other")) %>% 
+ 
+  #used this line of code to specify the order of the variables when graphed.
+   mutate(race_eth = fct_relevel(race_eth, "White", "Black","Hispanic", "Asian", "Other")) %>% 
+  
+  #grouped these variables to narrow down our table to what we need
   group_by(response, race_eth) %>%
+  
+  #created a variable called total which represents the percentage of votes for each party
   summarize(total = sum(final_weight)) %>%
+  
+  #This moves our table around to show reponse on top and race on the side
   spread(key = response, value= total) %>%
+  
+  #Narrowed down our table again
   select(race_eth, Dem, Rep, Und) %>% 
-  replace_na(list(Und = 0)) %>%
+ 
+  #used this to replace NA's with 0's to avoid problems with sums
+   replace_na(list(Und = 0)) %>%
+  
+  #ungrouping is needed to let us start from the beginning with our table
   ungroup() %>%
+ 
+  #created variables to show percentages for dem, rep, and und.
   mutate(all = Dem + Rep + Und) %>% 
   mutate(Dem = Dem / all) %>% 
   mutate(Rep = Rep / all) %>% 
   mutate(Und = Und / all) %>%
+  
+  #selected our variables needed again because we ungrouped earlier
   select(race_eth, Rep, Dem, Und) %>% 
+  
+  #begin creating the graph
   gt() %>%
+  
+  
+  #added necessary labels
   tab_header(title = "North Carolina 9th Congressional District Polling Results") %>%
    cols_label(
      race_eth = "Race",
@@ -95,8 +121,15 @@ graphNC <- x %>%
       Rep = "REP",
       Und = "UND"
       ) %>%
+  
+  #turned decimals into percentages
   fmt_percent(columns = vars(Dem, Rep, Und),
-                decimals = 0)
+                decimals = 0) %>%
+  
+  #these lines insert a dash instead of a 0 on our graph
+  na_if(0) %>%
+  fmt_missing(columns = vars(Und), rows = 4)
+
 graphNC
 ```
 
@@ -104,29 +137,61 @@ graphNC
 
 ```{r, echo = FALSE, warning=FALSE}
 GraphNC2 <- x %>%
+  #selected variables needed to recreate the graph
   select(educ, final_weight) %>%
+  
+  #removed the refusals to participate
   filter(educ != "[DO NOT READ] Refused") %>% 
+  
+  #ordered the table in the same order as the graph provided
   mutate(educ = fct_relevel(educ, "Grade school","High school","Some college or trade school","Bachelors' degree","Graduate or Professional Degree")) %>%
+  
+  #began creating graph using educ and final_weight as x and y variables repsectively
   ggplot(aes(x = educ, y = final_weight)) +
+ 
+  #selected specific graph used and used geom_jitter to edit the structure of the graph and its data points
   geom_violin() +
   geom_jitter(width = .2, size = 1.0, alpha = .5) + 
+  
+  #flipped the coordinates so that wording is visible
   coord_flip() +
+  
+  #added necessary labels
   labs(title= "More Educated Matter Less in North Carolina 9th ",
        subtitle = "Poll gives more weight to people who are less likely to participate in polls",
        caption = "New York Times Upshot/Siena College 2018 live polls") +
   ylab("Weight Given to Respondent in Calculating Poll Results") +
+ 
+  #removed label to match graph provided
   xlab(NULL)
 
 GraphNC2
 ```
 
 ##Question 4
-``{r}
+```{r, echo=FALSE, warning=FALSE}
 graphNC3 <- x %>%
-  select(gender, response, final_weight) %>%
-  filter(response != "3") %>%
-  ggplot(aes(x = gender, y = response)) +
-  geom_()
+  #decided to use gender and educ to see if there is a relationship between the education levels of men and women.I made this choice because I am wondering if voters tend to appreciate education levels in women more than men.
+  group_by(gender, educ) %>%
+  
+  #removed the refusals to participate
+  filter(educ != "[DO NOT READ] Refused") %>%
+  
+  #created number of people for each education level by gender
+  summarize(total = n()) %>%
+  
+  #created graph with educ as x value and total as y. filled with gender to clearly show differences between the two. Dodges2 put the charts next to eachother rather than on top of one another
+  ggplot(aes( x= educ, y = total, fill = gender)) +
+  geom_col(position = "dodge2") +
+  
+  #added necessary labels
+  labs( x = "Education Levels", y = "Number of People") +
+  
+  #flipped the x and y coordinates so that the education levels label was readable 
+  coord_flip()
+  
+  
+
 
   
   
@@ -135,15 +200,15 @@ graphNC3
 ```
 
 ##Colleagues
-Adiya Abdilkhay
-Alexandra Dobbins
-Albert Shin
-Jenny Li
-Henry Xhu
-Neil Khurana
-Tate Green
-Charlie Flood
-Chris Onesti
+Adiya Abdilkhay;
+Alexandra Dobbins;
+Albert Shin;
+Jenny Li;
+Henry Xhu;
+Neil Khurana;
+Tate Green;
+Charlie Flood;
+Chris Onesti;
 Seeam Noor
   
 
